@@ -9,6 +9,7 @@
 #define ADMIN_DIRECTORY "/export/home/stud20/19101224/project/"
 
 int fileopen(char* filename);
+int checkfile(int iDs);
 int getthemeList(char arr[][30]);
 void themeReservation();
 void getReservationList();
@@ -154,9 +155,34 @@ int getthemeList(char arr[][30]){
         return i;
 }
 
+int fileopen(char* filename) {
+    int iDs;
+
+    iDs = open(filename, O_RDONLY);
+    if(iDs == -1){
+        printf("%s", filename);
+        printf("파일이 존재하지 않습니다.\n");
+        exit(1);
+    }
+    return iDs;
+}
+
+int checkfile(int iDs){
+    int icnt = 1;
+    char tmp;
+    FILE *fp = fdopen(iDs, "r");
+
+    while(fscanf(fp,"%c",&tmp)!= EOF){
+        if(tmp == '\n') {
+        icnt++; }
+    }
+    return icnt;
+
+}
 
 char* makePath(char* name){
     static char absolutePath[100]=ADMIN_DIRECTORY;
     strcat(strcpy(absolutePath,ADMIN_DIRECTORY),name);
+    printf("%s\n", absolutePath);
     return absolutePath;
 }

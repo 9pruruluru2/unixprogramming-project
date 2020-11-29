@@ -28,10 +28,10 @@ int addTheme(){
     newfd = open(makePath("themelist.txt"),O_RDWR | O_CREAT,0644);
 
     FILE* themelist = fdopen(newfd,"r+");
-    if(themelist ==NULL){printf("NULL");}
+
     while(feof(themelist) == 0){
         char temp[100];
-        fgets(temp, sizeof(temp)/sizeof(char), themelist);
+        fgets(temp, 100, themelist);
         temp[(int)(strcspn(themeName,"\r\n"))] = '\0';
         temp[(int)(strcspn(themeName,"\n"))] = '\0';
 
@@ -43,12 +43,9 @@ int addTheme(){
     char timeTableName[110]="";
     strcpy(timeTableName,themeName);
 
-    fputs(strcat(timeTableName,"\r\n"), themelist);
-    timeTableName[(int)(strcspn(timeTableName,"\r\n"))] = '\0';
+    fputs(strcat(themeName,"\r\n"), themelist);
     timeTableName[(int)(strcspn(timeTableName,"\n"))] = '\0';
     strcat(timeTableName,"TimeTable.txt");
-
-    fclose(themelist);
 
     close(newfd);
     newfd = open(makePath(timeTableName),O_RDWR|O_CREAT|O_TRUNC, 0644);
@@ -58,7 +55,8 @@ int addTheme(){
     for(i=0;i<7;i++) fprintf(timeTableFile, "1 1 1 1 1 1\r\n");
     fclose(timeTableFile);
 
-    printf("%s를 추가했습니다.\n", themeName);
+    printf("%s를 추가했습니다.", themeName);
+    fclose(themelist);
     close(newfd);
     return 0;
 }
@@ -120,5 +118,4 @@ int copy(FILE* list,FILE* templist,char fileName[]){
     while(fgets(buf, 1024,templist)!=NULL){
         fprintf(list,"%s", buf);
     }
-    return 0
 }

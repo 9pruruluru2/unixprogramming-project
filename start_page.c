@@ -14,7 +14,7 @@
 
 void user();
 void admin();
-void themeList();
+void movieList(int iDs);
 void timetableManagement();
 
 
@@ -52,14 +52,18 @@ int main() {
 
 void user() {
     int val;
+    int iDs;
     int icnt;
+
+    iDs = fileopen(makePath("themelist.txt"));
+    icnt = checkfile(iDs);
 
     while(1){
 
-        themeList();
+        movieList(iDs);
 
         printf("-------환영합니다.-------\n");
-        printf(" 1. 테마 자세히 보기 \n");
+        printf(" 1. 테마보기 \n");
         printf(" 2. 프로그램 종료\n");
         printf("--------------\n");
         printf("숫자를 입력하시오 : ");
@@ -75,15 +79,14 @@ void user() {
 
 void admin() {
 
+
     int val;
-    pid_t ppid = getpid();
     pid_t pid;
     if((pid=fork())==0){
         while(1){
         timetableManagement();
-        if(getppid()!=ppid)break;
         }
-        exit(0);
+        return;
     }
 
     while(1){
@@ -108,7 +111,7 @@ void admin() {
 }
 
 
-void themeList(){
+void movieList(int iDs){
     char str[30] = "";
     int i;
     int newfd = open(makePath("themelist.txt"),O_RDONLY);
@@ -116,7 +119,7 @@ void themeList(){
 
     printf("------theme list------\n");
     for(i=1;fgets(str, 30, file)!=NULL;i++){
-        printf("%d : %s",i,str);
+        printf("%d %s",i,str);
     }
 }
 
@@ -128,6 +131,12 @@ void timetableManagement(){
 
     time(&nowTime);
     time(&afterTime);
+
+    /*여기서 고려한 점 원래 struct tm을 이용하여 날짜를 변경하려 했으나,
+    그런 식으로 변경하면 31일에서 1일로 넘어갈 때 일 변경과 월 변경을 해야하므로 코드가 길어짐.
+    그래서 time_t를 이용하여 다음날로 넘긴 후, tm으로 변환하여 다음날 0시0분0초으로 설정하여
+    다시 time_t로 변경하는 방식을 채택
+    */
 
     afterTime = afterTime + 24*60*60+10;//10초정도는 여유
     lt = localtime(&afterTime);
@@ -150,10 +159,12 @@ void timetableManagement(){
 
     char themeListArr[20][1024] = {""};
 
-    for (k = 1 ; fgets(themeListArr[k], sizeof(themeListArr[k])/sizeof(char), themeList) != NULL; k++){
+    for (k = 1 ;!(feof(themeList)); k++){
+        fgets(themeListArr[k], sizeof(themeListArr[k])/sizeof(char), themeList);
         if(feof(themeList)|| k> 1) break;
 
-        themeListArr[k][(int)(strcspn(themeListArr[k],"\r\n"))] ='\0';
+
+        themeListArr[k][(int)(strcspn(themeListArr[k],"\r\n"))] ='\0';//이상하게 나오면 이거 제거
         themeListArr[k][(int)(strcspn(themeListArr[k],"\n"))] ='\0';
         strcat(themeListArr[k],"TimeTable.txt");
         themeListArr[k][strlen(themeListArr[k])] = '\0';
@@ -162,9 +173,14 @@ void timetableManagement(){
 
         FILE* timeTableFile = fopen(makePath(themeListArr[k]), "r+");
         fseek(timeTableFile,0,SEEK_SET);
-
+        if (timeTableFile == NULL) {
+                perror("fopen()");
+                return;
+            }
         char timeTableArr[7][15]={0,};
+
         int i=0;
+
         while(!feof(timeTableFile)){
             fgets(timeTableArr[i],sizeof(timeTableArr[i])/sizeof(char), timeTableFile);
             i++;
@@ -178,11 +194,3 @@ void timetableManagement(){
     }
     return;
 }
-
-
-
-    /*여기서 고려한 점 원래 struct tm을 이용하여 날짜를 변경하려 했으나,
-    그런 식으로 변경하면 31일에서 1일로 넘어갈 때 일 변경과 월 변경을 해야하므로 코드가 길어짐.
-    그래서 time_t를 이용하여 다음날로 넘긴 후, tm으로 변환하여 다음날 0시0분0초으로 설정하여
-    다시 time_t로 변경하는 방식을 채택
-    */
