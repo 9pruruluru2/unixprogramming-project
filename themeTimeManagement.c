@@ -23,8 +23,10 @@ int i, j, num;
 
     char timeTableName[40];
     strcpy(timeTableName,arr[num]);
+    //timeTableName에 들어 있는 값은 현재 "테마이름\r\n"이 저장되어 있음.
     timeTableName[(int)(strcspn(timeTableName,"\r\n"))] = '\0';
     timeTableName[(int)(strcspn(timeTableName,"\n"))] = '\0';
+
     strcat(timeTableName,"TimeTable.txt");
 
     fd = open(makePath(timeTableName), O_RDWR);
@@ -80,9 +82,9 @@ int i, j, num;
             fprintf(tempTimeTableFile,"\r\n");
         }
         copy(timeTableFile,tempTimeTableFile,timeTableName);
-        fclose(timeTableFile);
     }
 
+    fclose(timeTableFile);
     return;
 }
 
